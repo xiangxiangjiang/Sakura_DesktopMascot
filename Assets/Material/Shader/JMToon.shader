@@ -48,7 +48,7 @@
         [PowerSlider(1.5)] _RimLightWidth ("Width：宽度", Range(0, 1)) = 0.3
         [PowerSlider(0.35)] _RimLightLength ("Length：长度", Range(0, 10)) = 7
         [PowerSlider(2)] _RimLightLevel ("Level：强度偏移", Range(-1, 1)) = 0
-                
+        
         
         [Header(OutLine)]
         _Outline_Color ("Outline Color", Color) = (0.5, 0.5, 0.5, 1)
@@ -119,6 +119,7 @@
             
             CGPROGRAM
             
+            #pragma multi_compile_fwdadd_fullshadows
             #pragma vertex vert
             #pragma fragment frag
             #include "UnityCG.cginc"
@@ -130,6 +131,32 @@
             ENDCG
             
         }
+        
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags { "LightMode" = "ShadowCaster" }
+            
+            ZWrite On ZTest LEqual
+            
+            CGPROGRAM
+            
+            #pragma target 2.0
+            
+            #pragma shader_feature_local _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local _METALLICGLOSSMAP
+            #pragma shader_feature_local _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma skip_variants SHADOWS_SOFT
+            #pragma multi_compile_shadowcaster
+            
+            #pragma vertex vertShadowCaster
+            #pragma fragment fragShadowCaster
+            
+            #include "UnityStandardShadow.cginc"
+            
+            ENDCG
+            
+        }
     }
-    FallBack "Legacy Shaders/VertexLit"
+    // FallBack "Legacy Shaders/VertexLit"
 }

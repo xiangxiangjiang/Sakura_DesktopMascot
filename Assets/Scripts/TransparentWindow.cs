@@ -88,7 +88,7 @@ public class TransparentWindow : MonoBehaviour
 
     void Start()
     {
-        Camera.main.depthTextureMode = DepthTextureMode.Depth;
+        Camera.main.depthTextureMode = DepthTextureMode.DepthNormals;
         if (Application.isEditor) return;
 
 

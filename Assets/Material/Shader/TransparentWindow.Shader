@@ -35,7 +35,6 @@ Shader "Custom/MakeTransparent"
                 return o;
             }
             
-            
             float4 PixelShaderFunction(v2f i): SV_Target
             {
                 float depth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv));

@@ -149,6 +149,11 @@ public class SakuraCtrl : MonoBehaviour
         Debug.Log("触发重启");
     }
 
+    void specified()
+    {
+        Debug.Log("触发specified");
+    }
+
     List<string> LoadAniName(string path)
     {
         List<string> names = new List<string>();
