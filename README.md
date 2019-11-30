@@ -1,5 +1,6 @@
 # Sakura_DesktopMascot
 八重樱桌宠
+
 知乎专栏中做了技术上的讲解：https://zhuanlan.zhihu.com/UnityGraphicsWaifu
 
 操作说明：左键触摸，右键旋转视角，按住滚轮平移，滑动滚轮缩放，按住右键滑动滚轮上下移动视角
