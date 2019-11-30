@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TransparentWindow : MonoBehaviour
 {
@@ -65,6 +66,7 @@ public class TransparentWindow : MonoBehaviour
     const int SWP_SHOWWINDOW = 0x0040;
     const int LWA_ALPHA = 2;
 
+
     private IntPtr HWND_TOPMOST = new IntPtr(-1);
 
     #endregion
@@ -91,7 +93,6 @@ public class TransparentWindow : MonoBehaviour
         Camera.main.depthTextureMode = DepthTextureMode.DepthNormals;
         if (Application.isEditor) return;
 
-
         MARGINS margins = new MARGINS() { cxLeftWidth = -1 };
 
         var pos = LoadPos();
@@ -100,7 +101,7 @@ public class TransparentWindow : MonoBehaviour
         // Set properties of the window
         // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms633591%28v=vs.85%29.aspx
         SetWindowLong(windowHandle, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-
+        // SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TRANSPARENT); // 实现鼠标穿透
 
         // Extend the window into the client area
         //See: https://msdn.microsoft.com/en-us/library/windows/desktop/aa969512%28v=vs.85%29.aspx 
@@ -112,6 +113,8 @@ public class TransparentWindow : MonoBehaviour
         if (Application.isEditor) return;
 
         Drag();
+
+        CursorPenetrate();
     }
 
     private void Drag()
@@ -164,6 +167,56 @@ public class TransparentWindow : MonoBehaviour
         }
         else
             return new Vector2Int(100, 100);
+    }
+
+    bool _isInRoleRect = false;
+    Vector2Int _lastMousePos = Vector2Int.zero;
+
+    void CursorPenetrate()
+    {
+        // 鼠标有位移时打射线，碰到角色则不穿透，否则窗口穿透
+        var pos = GetMousePosW2U();
+        if (GetMouseMove(_lastMousePos, pos) < 1) return;
+        var posV3 = new Vector3(pos.x, pos.y, 0);
+        RaycastHit hitInfo;
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(posV3), out hitInfo, 100f, LayerMask.GetMask("WindowRect")))
+        {
+            // 鼠标进入角色范围
+            if (!_isInRoleRect)
+            {
+                SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_LAYERED);
+                _isInRoleRect = true;
+            }
+        }
+        else
+        {
+            // 鼠标移出
+            if (_isInRoleRect)
+            {
+                SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TRANSPARENT);
+                _isInRoleRect = false;
+            }
+        }
+        _lastMousePos = pos;
+    }
+
+    // 获取从Windows桌面空间转换到Unity屏幕空间的鼠标位置
+    Vector2Int GetMousePosW2U()
+    {
+        RECT rect = new RECT();
+        GetWindowRect(windowHandle, ref rect);
+        Vector2Int leftBottom = new Vector2Int(rect.Left, rect.Bottom);
+        var mousePos = new Vector2Int(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
+        var screenHeight = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
+        leftBottom.y = screenHeight - leftBottom.y;
+        mousePos.y = screenHeight - mousePos.y;
+
+        return mousePos - leftBottom;
+    }
+
+    float GetMouseMove(Vector2 last, Vector2 current)
+    {
+        return Mathf.Abs(current.x - last.x) + Mathf.Abs(current.y - last.y);
     }
 
     void OnRenderImage(RenderTexture from, RenderTexture to)
