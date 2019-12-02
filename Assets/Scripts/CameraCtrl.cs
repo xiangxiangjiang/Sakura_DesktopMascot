@@ -25,43 +25,15 @@ public class CameraCtrl : MonoBehaviour
     float _nearestDis = 1.5f;
     [SerializeField]
     float _farthestDis = 8f;
-    // [SerializeField]
-    // float _highest = 0.7f;
-    // [SerializeField]
-    // float _lowest = -1f;
+    [SerializeField]
+    float _yOffset = 4000;
 
     float _lastScroll = 0f;
     float _distance = 0f;
     float _rotate = 0f;
     float _viewAngle = 0f;
-    float _yOffset = 0f;
     Vector3 _screen2WorldOffset = Vector3.zero;
 
-    class PosData
-    {
-        public float sakuraPosY;
-        public float sakuraRotY;
-        public float camPosX;
-        public float camPosY;
-        public float camPosZ;
-        public float camRotX;
-        public float camRotY;
-        public float camRotZ;
-        public float camRotW;
-
-        public PosData(float sakuraPosY, float sakuraRotY, float camPosX, float camPosY, float camPosZ, float camRotX, float camRotY, float camRotZ, float camRotW)
-        {
-            this.sakuraPosY = sakuraPosY;
-            this.sakuraRotY = sakuraRotY;
-            this.camPosX = camPosX;
-            this.camPosY = camPosY;
-            this.camPosZ = camPosZ;
-            this.camRotX = camRotX;
-            this.camRotY = camRotY;
-            this.camRotZ = camRotZ;
-            this.camRotW = camRotW;
-        }
-    }
 
     private void Awake()
     {
@@ -99,29 +71,16 @@ public class CameraCtrl : MonoBehaviour
             DataModel.Instance.SaveData();
         }
         _lastScroll = Input.mouseScrollDelta.y;
+
     }
 
     private void Scaling()
     {
-        // if (Input.GetMouseButton(1))
-        // {
-        //     // 高度
-        //     _yOffset = -_sakura.position.y;
-        //     if (_lastScroll > 0 ?
-        //     _yOffset < _highest :
-        //     _yOffset > _lowest)
-        //     {
-        //         _sakura.Translate(Vector3.up * _lastScroll * Time.deltaTime * -5 * _moveSpeed);
-        //     }
-        // }
-        // else
+        // 距离
+        _distance = Vector3.Distance(transform.position, _rotateTarget.position);
+        if (_lastScroll > 0 ? _distance > _nearestDis : _distance < _farthestDis)
         {
-            // 距离
-            _distance = Vector3.Distance(transform.position, _rotateTarget.position);
-            if (_lastScroll > 0 ? _distance > _nearestDis : _distance < _farthestDis)
-            {
-                transform.Translate(Vector3.forward * _lastScroll * _moveSpeed * Time.deltaTime * 10, Space.Self);
-            }
+            transform.Translate(Vector3.forward * _lastScroll * _moveSpeed * Time.deltaTime * 10, Space.Self);
         }
     }
 
@@ -155,8 +114,10 @@ public class CameraCtrl : MonoBehaviour
         var newPos = new Vector3(mousePosV2.x, mousePosV2.y, 0) + _screen2WorldOffset;
         var h = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
         var w = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
+        // 限制上下位置，并随与摄像机距离变化
+        var dis = Vector3.Distance(transform.position, _rotateTarget.position);
         newPos.x = Mathf.Clamp(newPos.x, 0, w);
-        newPos.y = Mathf.Clamp(newPos.y, 0, h - 200);
+        newPos.y = Mathf.Clamp(newPos.y, 0 - _yOffset / dis, h - _yOffset / dis);
         _sakura.position = Camera.main.ScreenToWorldPoint(newPos);
     }
 }

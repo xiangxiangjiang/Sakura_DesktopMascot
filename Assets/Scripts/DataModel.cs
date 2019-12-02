@@ -9,6 +9,7 @@ public class UserData
     public Vector3 cameraPos;
     public Quaternion cameraRot;
     public bool isTopMost;
+    public bool isRunOnStartup;
 }
 
 public class DataModel
@@ -31,7 +32,7 @@ public class DataModel
         }
         else
         {
-            Data = new UserData() { rolePos = _rolePos, roleRot = _roleRot, cameraPos = _cameraPos, cameraRot = _cameraRot, isTopMost = false };
+            Data = new UserData() { rolePos = _rolePos, roleRot = _roleRot, cameraPos = _cameraPos, cameraRot = _cameraRot, isTopMost = false, isRunOnStartup = false };
             var strData = JsonUtility.ToJson(Data);
             PlayerPrefs.SetString(Application.productName + "_UserData", strData);
         }

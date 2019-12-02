@@ -5,9 +5,18 @@ using UnityEngine.UI;
 
 public class TransparentWindow : MonoBehaviour
 {
-    static TransparentWindow _instance = new TransparentWindow();
-    public static TransparentWindow Instance { get { return _instance; } }
-    TransparentWindow() { }
+    static TransparentWindow _instance;
+    public static TransparentWindow Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindObjectOfType<TransparentWindow>();
+            }
+            return _instance;
+        }
+    }
 
     [SerializeField]
     private Material m_Material;
@@ -95,8 +104,6 @@ public class TransparentWindow : MonoBehaviour
         }
     }
 
-    // public int screenWidth = 600;
-    // public int screenHeight = 1000;
     IntPtr _windowHandle = IntPtr.Zero;
     Vector2Int _offset = Vector2Int.zero;
 
@@ -108,7 +115,7 @@ public class TransparentWindow : MonoBehaviour
         MARGINS margins = new MARGINS() { cxLeftWidth = -1 };
 
         //1：忽略大小；2：忽略位置；4：忽略Z顺序
-        SetWindowPos(windowHandle, HWND_TOPMOST, 0 + _xOffset, 0 + _yOffset,
+        SetWindowPos(windowHandle, HWND_TOPMOST, _xOffset, _yOffset,
         System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width,
         System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height, 4);
 
@@ -121,70 +128,17 @@ public class TransparentWindow : MonoBehaviour
         //See: https://msdn.microsoft.com/en-us/library/windows/desktop/aa969512%28v=vs.85%29.aspx 
         DwmExtendFrameIntoClientArea(windowHandle, ref margins);
 
-        ToggleTopMost(DataModel.Instance.Data.isTopMost);
+        SetWindowPos(windowHandle, DataModel.Instance.Data.isTopMost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
 
         AddSystemTray();
+
     }
 
     private void LateUpdate()
     {
         if (Application.isEditor) return;
 
-        // Drag();
-
         CursorPenetrate();
-    }
-
-    private void Drag()
-    {
-        // 拖拽开始
-        if (Input.GetMouseButtonDown(2))
-        {
-            RECT rect = new RECT();
-            GetWindowRect(windowHandle, ref rect);
-            _offset.x = -System.Windows.Forms.Cursor.Position.X + rect.Left;
-            _offset.y = -System.Windows.Forms.Cursor.Position.Y + rect.Top;
-        }
-
-        // 拖拽中
-        if (Input.GetMouseButton(2))
-        {
-            SetWindowPos(windowHandle, HWND_TOPMOST, System.Windows.Forms.Cursor.Position.X + _offset.x,
-            System.Windows.Forms.Cursor.Position.Y + _offset.y, 0, 0, 1 | 4);
-        }
-
-        // 结束拖拽
-        if (Input.GetMouseButtonUp(2))
-        {
-            SavePos();
-        }
-
-        // 归位、删除所有设置并重启
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F9))
-        {
-            SetWindowPos(windowHandle, HWND_TOPMOST, 0, 0, 0, 0, 1 | 4);
-            PlayerPrefs.DeleteAll();
-            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-        }
-    }
-
-    void SavePos()
-    {
-        RECT rect = new RECT();
-        GetWindowRect(windowHandle, ref rect);
-        PlayerPrefs.SetInt(Application.productName + "_WindowRECT_Left", rect.Left);
-        PlayerPrefs.SetInt(Application.productName + "_WindowRECT_Top", rect.Top);
-    }
-
-    Vector2Int LoadPos()
-    {
-        if (PlayerPrefs.HasKey(Application.productName + "_WindowRECT_Left"))
-        {
-            return new Vector2Int(PlayerPrefs.GetInt(Application.productName + "_WindowRECT_Left"),
-             PlayerPrefs.GetInt(Application.productName + "_WindowRECT_Top"));
-        }
-        else
-            return new Vector2Int(100, 100);
     }
 
     bool _isInRoleRect = false;
@@ -242,28 +196,47 @@ public class TransparentWindow : MonoBehaviour
     void AddSystemTray()
     {
         _icon = Rainity.CreateSystemTrayIcon();
-        _icon.AddItem("切换置顶显示", () =>
-        {
-            bool isTop = !DataModel.Instance.Data.isTopMost;
-            DataModel.Instance.Data.isTopMost = isTop;
-            DataModel.Instance.SaveData();
-            DataModel.Instance.ReloadData();
-            var style = (uint)GetWindowLong(windowHandle, GWL_EXSTYLE);
-            ToggleTopMost(isTop);
-        });
+        _icon.AddItem("切换置顶显示", ToggleTopMost);
+        _icon.AddItem("切换开机自启", ToggleRunOnStartup);
         _icon.AddItem("退出", Exit);
     }
 
-    void ToggleTopMost(bool isTop)
+    void ToggleTopMost()
     {
+        bool isTop = !DataModel.Instance.Data.isTopMost;
+        DataModel.Instance.Data.isTopMost = isTop;
+        DataModel.Instance.SaveData();
+        DataModel.Instance.ReloadData();
+        var style = (uint)GetWindowLong(windowHandle, GWL_EXSTYLE);
         if (isTop)
         {
             SetWindowPos(windowHandle, HWND_TOPMOST, 0, 0, 0, 0, 1 | 2);
+            UIDialog.Instance.ShowDialog("开启置顶", 3);
         }
         else
         {
             SetWindowPos(windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, 1 | 2);
+            UIDialog.Instance.ShowDialog("关闭置顶", 3);
         }
+    }
+
+    void ToggleRunOnStartup()
+    {
+        bool isRun = !DataModel.Instance.Data.isRunOnStartup;
+        DataModel.Instance.Data.isRunOnStartup = isRun;
+        DataModel.Instance.SaveData();
+        DataModel.Instance.ReloadData();
+        if (isRun)
+        {
+            Rainity.AddToStartup();
+            UIDialog.Instance.ShowDialog("开启开机自启", 3);
+        }
+        else
+        {
+            Rainity.RemoveFromStartup();
+            UIDialog.Instance.ShowDialog("关闭开机自启", 3);
+        }
+
     }
 
     void Exit()
