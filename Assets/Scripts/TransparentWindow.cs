@@ -81,6 +81,7 @@ public class TransparentWindow : MonoBehaviour
     const uint WS_EX_TOPMOST = 0x00000008;
     const uint WS_EX_LAYERED = 0x00080000;
     const uint WS_EX_TRANSPARENT = 0x00000020;
+    const uint WS_EX_TOOLWINDOW = 0x00000080;//隐藏图标
 
     const int SWP_FRAMECHANGED = 0x0020;
     const int SWP_SHOWWINDOW = 0x0040;
@@ -122,7 +123,7 @@ public class TransparentWindow : MonoBehaviour
         // Set properties of the window
         // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms633591%28v=vs.85%29.aspx
         SetWindowLong(windowHandle, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-        SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST); // 实现鼠标穿透
+        SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT); // 实现鼠标穿透
 
         // Extend the window into the client area
         //See: https://msdn.microsoft.com/en-us/library/windows/desktop/aa969512%28v=vs.85%29.aspx 
@@ -156,7 +157,8 @@ public class TransparentWindow : MonoBehaviour
             // 鼠标进入角色范围
             if (!_isInRoleRect)
             {
-                SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_LAYERED);
+                var s = GetWindowLong(windowHandle, GWL_EXSTYLE);
+                SetWindowLong(windowHandle, GWL_EXSTYLE, (uint)(s & ~WS_EX_TRANSPARENT));
                 _isInRoleRect = true;
             }
         }
@@ -165,7 +167,8 @@ public class TransparentWindow : MonoBehaviour
             // 鼠标移出
             if (_isInRoleRect)
             {
-                SetWindowLong(windowHandle, GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TRANSPARENT);
+                var s = GetWindowLong(windowHandle, GWL_EXSTYLE);
+                SetWindowLong(windowHandle, GWL_EXSTYLE, (uint)(s | WS_EX_TRANSPARENT));
                 _isInRoleRect = false;
             }
         }
@@ -198,6 +201,7 @@ public class TransparentWindow : MonoBehaviour
         _icon = Rainity.CreateSystemTrayIcon();
         _icon.AddItem("切换置顶显示", ToggleTopMost);
         _icon.AddItem("切换开机自启", ToggleRunOnStartup);
+        _icon.AddItem("退出并清除设置", Clean);
         _icon.AddItem("退出", Exit);
     }
 
@@ -207,7 +211,6 @@ public class TransparentWindow : MonoBehaviour
         DataModel.Instance.Data.isTopMost = isTop;
         DataModel.Instance.SaveData();
         DataModel.Instance.ReloadData();
-        var style = (uint)GetWindowLong(windowHandle, GWL_EXSTYLE);
         if (isTop)
         {
             SetWindowPos(windowHandle, HWND_TOPMOST, 0, 0, 0, 0, 1 | 2);
@@ -243,6 +246,12 @@ public class TransparentWindow : MonoBehaviour
     {
         _icon.Dispose();
         Application.Quit();
+    }
+
+    void Clean()
+    {
+        PlayerPrefs.DeleteAll();
+        Exit();
     }
 
     void OnRenderImage(RenderTexture from, RenderTexture to)

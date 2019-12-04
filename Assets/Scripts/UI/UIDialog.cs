@@ -31,6 +31,8 @@ public class UIDialog : MonoBehaviour
 
     public void ShowDialog(string str, float duration, UnityAction callback = null)
     {
+        CancelInvoke("ClossDialog");
+        _dialog.transform.DOPause();
         _dialogText.text = str;
         _dialog.gameObject.SetActive(true);
         _dialog.transform.localScale = new Vector3(1, 0, 1);

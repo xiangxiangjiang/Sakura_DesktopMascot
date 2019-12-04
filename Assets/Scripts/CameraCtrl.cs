@@ -25,8 +25,6 @@ public class CameraCtrl : MonoBehaviour
     float _nearestDis = 1.5f;
     [SerializeField]
     float _farthestDis = 8f;
-    [SerializeField]
-    float _yOffset = 4000;
 
     float _lastScroll = 0f;
     float _distance = 0f;
@@ -35,10 +33,15 @@ public class CameraCtrl : MonoBehaviour
     Vector3 _screen2WorldOffset = Vector3.zero;
 
 
+
     private void Awake()
     {
+        Application.targetFrameRate = 120;
         DataModel.Instance.Init(_sakura.position, _sakura.rotation, transform.position, transform.rotation);
         var data = DataModel.Instance.Data;
+        // 累计误差达到一定值则重置位置
+        if (data.cameraPos.magnitude + data.rolePos.magnitude > 10000f)
+            return;
         transform.position = data.cameraPos;
         transform.rotation = data.cameraRot;
         _sakura.position = data.rolePos;
@@ -80,7 +83,9 @@ public class CameraCtrl : MonoBehaviour
         _distance = Vector3.Distance(transform.position, _rotateTarget.position);
         if (_lastScroll > 0 ? _distance > _nearestDis : _distance < _farthestDis)
         {
-            transform.Translate(Vector3.forward * _lastScroll * _moveSpeed * Time.deltaTime * 10, Space.Self);
+            // 向朝向角色的方向移动
+            var dir = Vector3.Normalize(_rotateTarget.position - transform.position);
+            transform.Translate(dir * _lastScroll * _moveSpeed * Time.deltaTime * _distance * 0.75f, Space.World);
         }
     }
 
@@ -112,12 +117,13 @@ public class CameraCtrl : MonoBehaviour
     {
         var mousePosV2 = TransparentWindow.Instance.GetMousePosW2U();
         var newPos = new Vector3(mousePosV2.x, mousePosV2.y, 0) + _screen2WorldOffset;
-        var h = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
-        var w = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
-        // 限制上下位置，并随与摄像机距离变化
-        var dis = Vector3.Distance(transform.position, _rotateTarget.position);
-        newPos.x = Mathf.Clamp(newPos.x, 0, w);
-        newPos.y = Mathf.Clamp(newPos.y, 0 - _yOffset / dis, h - _yOffset / dis);
+        // 限制上下位置
+        var rotateTargetPos = Camera.main.WorldToScreenPoint(_rotateTarget.position);
+        var rolePos = Camera.main.WorldToScreenPoint(_sakura.position);
+        var dis = (new Vector2(rotateTargetPos.x, rotateTargetPos.y) - new Vector2(rolePos.x, rolePos.y)).magnitude;
+        newPos.x = Mathf.Clamp(newPos.x, 0, System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width);
+        newPos.y = Mathf.Clamp(newPos.y, 0 - dis, System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height - dis);
         _sakura.position = Camera.main.ScreenToWorldPoint(newPos);
+
     }
 }
