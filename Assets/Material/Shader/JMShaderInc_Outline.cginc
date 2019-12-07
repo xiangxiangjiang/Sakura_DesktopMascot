@@ -58,7 +58,7 @@ VertexOutput vert(VertexInput v)
     float3 _BakedNormalDir = normalize(mul(_BakedNormal_var.rgb, tangentTransform));
     
     float4 _Outline_Sampler_var = tex2Dlod(_ColorMap, float4(Set_UV0, 0.0, 0));
-    float Set_Outline_Width = _Outline_Width * 0.001;// * v.color.r;
+    float Set_Outline_Width = _Outline_Width * 0.001 * _Outline_Sampler_var.a;
     float4 _ClipCameraPos = mul(UNITY_MATRIX_VP, float4(_WorldSpaceCameraPos.xyz, 1));
     #if defined(UNITY_REVERSED_Z)
         //v.2.0.4.2 (DX)

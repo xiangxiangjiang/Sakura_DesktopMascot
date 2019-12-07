@@ -138,6 +138,7 @@
             Tags { "LightMode" = "ShadowCaster" }
             
             ZWrite On ZTest LEqual
+            Cull Off
             
             CGPROGRAM
             
@@ -152,7 +153,7 @@
             #pragma vertex vertShadowCaster
             #pragma fragment fragShadowCaster
             
-            #include "UnityStandardShadow.cginc"
+            #include "MyShadow.cginc"
             
             ENDCG
             
