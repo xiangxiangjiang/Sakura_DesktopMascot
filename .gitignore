@@ -52,3 +52,4 @@ Build.7z
 UpdateTool/Update.spec
 UpdateTool/dist/
 UpdateTool/__pycache__/
+UpdateTool/help.spec
