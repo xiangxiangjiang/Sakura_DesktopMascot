@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class UserData
 {
@@ -10,6 +11,7 @@ public class UserData
     public Quaternion cameraRot;
     public bool isTopMost;
     public bool isRunOnStartup;
+    public long updateTime;
 }
 
 public class DataModel
@@ -29,10 +31,22 @@ public class DataModel
         {
             var strData = PlayerPrefs.GetString(Application.productName + "_UserData");
             Data = JsonUtility.FromJson<UserData>(strData);
+            // 版本新增值初始化
+            if (Data.updateTime == 0)
+            {
+                Data.updateTime = DateTime.Now.ToFileTime();
+                SaveData();
+            }
         }
         else
         {
-            Data = new UserData() { rolePos = _rolePos, roleRot = _roleRot, cameraPos = _cameraPos, cameraRot = _cameraRot, isTopMost = false, isRunOnStartup = false };
+            Data = new UserData() { rolePos = _rolePos,
+                                    roleRot = _roleRot,
+                                    cameraPos = _cameraPos,
+                                    cameraRot = _cameraRot,
+                                    isTopMost = false,
+                                    isRunOnStartup = false,
+                                    updateTime = DateTime.Now.ToFileTime()};
             var strData = JsonUtility.ToJson(Data);
             PlayerPrefs.SetString(Application.productName + "_UserData", strData);
         }

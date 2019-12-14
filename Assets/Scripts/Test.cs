@@ -1,16 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Diagnostics;
+using System;
 
 public class Test : MonoBehaviour
 {
     class TestJson
     {
         public float testA;
-        public string testB;
-        public Vector3 TestPos;
-        public Quaternion TestRot;
+        public long testB;
     }
 
     void Start()
@@ -28,14 +26,15 @@ public class Test : MonoBehaviour
     }
 
 
-    // void TestMyJson()
-    // {
-    //     var obj = new TestJson() { testA = 1.0f, testB = "str", TestPos = Vector3.up, TestRot = Quaternion.identity };
-    //     var str = JsonUtility.ToJson(obj);
-    //     Debug.Log(str);
-    //     var obj2 = JsonUtility.FromJson<TestJson>(str);
-    //     Debug.Log(obj2.testA);
-    //     Debug.Log(obj2.TestPos);
-    //     Debug.Log(obj2.TestRot);
-    // }
+    void TestMyJson()
+    {
+        DateTime t1 = DateTime.Now;
+        var str = JsonUtility.ToJson(t1);
+        Debug.Log(t1.ToFileTime());
+        Debug.Log(DateTime.FromFileTime(t1.ToFileTime()));
+        Debug.Log(JsonUtility.ToJson(new TestJson() { testA = 6.66f, testB = 9999999 }));
+        var obj = JsonUtility.FromJson<TestJson>("{\"testA\":6.659999847412109}");
+        Debug.Log(obj.testA);
+        Debug.Log(obj.testB);
+    }
 }

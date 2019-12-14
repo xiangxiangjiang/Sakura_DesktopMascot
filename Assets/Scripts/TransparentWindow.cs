@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.UI;
@@ -133,10 +134,12 @@ public class TransparentWindow : MonoBehaviour
 
         AddSystemTray();
 
+        AutoUpdate();
     }
 
     private void LateUpdate()
     {
+
         if (Application.isEditor) return;
 
         CursorPenetrate();
@@ -201,7 +204,10 @@ public class TransparentWindow : MonoBehaviour
         _icon = Rainity.CreateSystemTrayIcon();
         _icon.AddItem("切换置顶显示", ToggleTopMost);
         _icon.AddItem("切换开机自启", ToggleRunOnStartup);
-        _icon.AddItem("退出并清除设置", Clean);
+        _icon.AddSeparator();
+        // _icon.AddItem("检查更新", CheckUpdate);// 必然闪退
+        _icon.AddItem("清除设置并退出", Clean);
+        _icon.AddSeparator();
         _icon.AddItem("退出", Exit);
     }
 
@@ -252,6 +258,32 @@ public class TransparentWindow : MonoBehaviour
     {
         PlayerPrefs.DeleteAll();
         Exit();
+    }
+
+    void AutoUpdate()
+    {
+        // 写入版本文件以供py读取
+        File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "\\" + "Ver.data", Application.version + "\n"
+                                                                                   + Application.productName + ".exe");
+        // 比较日期，大于一周则调用检查更新
+        var lateUpdateDate = DateTime.FromFileTime(DataModel.Instance.Data.updateTime);
+        var now = DateTime.Now;
+        TimeSpan ts = now - lateUpdateDate;
+        if (ts.Days >= 7)
+        {
+            CheckUpdate();
+            DataModel.Instance.Data.updateTime = DateTime.Now.ToFileTime();
+            DataModel.Instance.SaveData();
+        }
+    }
+
+    void CheckUpdate()
+    {
+        System.Diagnostics.Process p = new System.Diagnostics.Process();
+        p.StartInfo.FileName = AppDomain.CurrentDomain.BaseDirectory + "\\" + "Update.exe";
+        // p.StartInfo.FileName = "explorer.exe";
+        p.StartInfo.Arguments = AppDomain.CurrentDomain.BaseDirectory;
+        p.Start();
     }
 
     void OnRenderImage(RenderTexture from, RenderTexture to)
