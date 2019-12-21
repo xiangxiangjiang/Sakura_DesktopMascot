@@ -11,6 +11,9 @@ public class Test : MonoBehaviour
         public long testB;
     }
 
+    public GameObject[] go;
+    public float test;
+
     void Start()
     {
         // TestMyJson();

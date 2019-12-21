@@ -118,7 +118,7 @@ public class TransparentWindow : MonoBehaviour
 
         //1：忽略大小；2：忽略位置；4：忽略Z顺序
         SetWindowPos(windowHandle, HWND_TOPMOST, _xOffset, _yOffset,
-        System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width,
+        System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width + 83,
         System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height, 4);
 
         // Set properties of the window
@@ -281,7 +281,6 @@ public class TransparentWindow : MonoBehaviour
     {
         System.Diagnostics.Process p = new System.Diagnostics.Process();
         p.StartInfo.FileName = AppDomain.CurrentDomain.BaseDirectory + "\\" + "Update.exe";
-        // p.StartInfo.FileName = "explorer.exe";
         p.StartInfo.Arguments = AppDomain.CurrentDomain.BaseDirectory;
         p.Start();
     }
