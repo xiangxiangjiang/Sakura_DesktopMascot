@@ -14,8 +14,14 @@ public class FaceManager : MonoBehaviour
             if (_instance == null)
             {
                 _instance = FindObjectOfType<FaceManager>();
+                var go = GameObject.Find("/__Face Manager");
+                if (go)
+                    _instance = go.GetComponent<FaceManager>();
                 if (_instance == null)
+                {
                     _instance = (new GameObject("__Face Manager", typeof(FaceManager))).GetComponent<FaceManager>();
+                    _instance.hideFlags = HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor;
+                }
             }
             return _instance;
         }
@@ -37,6 +43,7 @@ public class FaceManager : MonoBehaviour
             SetFace(valueMouth, face.Value.lastValueMouth, face.Value.sprites.mouth, face.Value.matMouth);
         }
     }
+
 
     void SetFace(Dictionary<string, float> values,
                  Dictionary<string, float> lastValues,
