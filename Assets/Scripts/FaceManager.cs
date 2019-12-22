@@ -16,8 +16,12 @@ public class FaceManager : MonoBehaviour
                 _instance = FindObjectOfType<FaceManager>();
                 var go = GameObject.Find("/__Face Manager");
                 if (go)
+                {
                     _instance = go.GetComponent<FaceManager>();
-                if (_instance == null)
+                    if (_instance == null)
+                        _instance = go.AddComponent<FaceManager>();
+                }
+                else
                 {
                     _instance = (new GameObject("__Face Manager", typeof(FaceManager))).GetComponent<FaceManager>();
                     _instance.hideFlags = HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor;

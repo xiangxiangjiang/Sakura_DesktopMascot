@@ -5,16 +5,16 @@ using UnityEngine;
 public class FaceAutoAnimation : StateMachineBehaviour
 {
     public AudioSource audioPrefeb;
-    FaceCtrl face;
+    // FaceCtrl face;
     AudioSource audio;
     float[] spectrumData = new float[128];
 
-    override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
-    {
-        //进入状态加载音频
-        audio = Instantiate(audioPrefeb, GameObject.Find("/Audio").transform);
-        face = GameObject.Find("/Sakura").GetComponent<FaceCtrl>();
-    }
+    // override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    // {
+    //     //进入状态加载音频
+    //     audio = Instantiate(audioPrefeb, GameObject.Find("/Audio").transform);
+    //     face = GameObject.Find("/Sakura").GetComponent<FaceCtrl>();
+    // }
 
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
@@ -29,18 +29,18 @@ public class FaceAutoAnimation : StateMachineBehaviour
                 max = spectrumData[i];
             }
         }
-        if (max < 0.01f)
-            face.speek = 0;
-        else if (max < 0.02f)
-            face.speek = 1;
+        // if (max < 0.01f)
+        //     face.speek = 0;
+        // else if (max < 0.02f)
+        //     face.speek = 1;
 
-        else if (max < 0.03f)
-            face.speek = 2;
+        // else if (max < 0.03f)
+        //     face.speek = 2;
 
-        else if (max < 0.04f)
-            face.speek = 3;
-        else
-            face.speek = 4;
+        // else if (max < 0.04f)
+        //     face.speek = 3;
+        // else
+        //     face.speek = 4;
 
     }
 

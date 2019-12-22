@@ -16,7 +16,7 @@ TextureImporter:
     second: l04
   - first:
       213: -3631569803227822908
-    second: l10
+    second: l000
   - first:
       213: -1852454743691544963
     second: r02
@@ -28,7 +28,7 @@ TextureImporter:
     second: l03
   - first:
       213: -149026371798274853
-    second: r10
+    second: r000
   - first:
       213: 7327884028113519755
     second: l00
@@ -218,7 +218,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: l10
+      name: l000
       rect:
         serializedVersion: 2
         x: 0
@@ -302,7 +302,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: r10
+      name: r000
       rect:
         serializedVersion: 2
         x: 0
