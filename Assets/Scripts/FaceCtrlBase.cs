@@ -5,16 +5,15 @@ using UnityEngine;
 
 public abstract class FaceCtrlBase : MonoBehaviour
 {
-    protected abstract Dictionary<string, float> valueGetterEye_L { get; }
-    protected abstract Dictionary<string, float> valueGetterEye_R { get; }
-    protected abstract Dictionary<string, float> valueGetterMouth { get; }
+    protected Dictionary<string, float> _valueEye_L = new Dictionary<string, float>();
+    protected Dictionary<string, float> _valueEye_R = new Dictionary<string, float>();
+    protected Dictionary<string, float> _valueMouth = new Dictionary<string, float>();
+
     protected abstract void Start();
     protected abstract void Update();
     public void OnValidate()
     {
         Start();
-        Update();
-        FaceManager.Instance.LateUpdate();
     }
 
 

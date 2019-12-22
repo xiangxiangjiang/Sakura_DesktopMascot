@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+[ExecuteInEditMode]
 public class FaceManager : MonoBehaviour
 {
     #region Singleton Pattern
@@ -31,6 +32,7 @@ public class FaceManager : MonoBehaviour
         }
     }
     FaceManager() { }
+    void OnDestroy() { DestroyImmediate(gameObject); }
     #endregion
 
     Dictionary<string, Face> _faceDic = new Dictionary<string, Face>();
@@ -70,11 +72,15 @@ public class FaceManager : MonoBehaviour
             if (spritesData.ContainsKey(maxKey))
             {
                 var sprites = spritesData[maxKey];
-                var sprite = sprites[(int)(maxValue * (sprites.Length - 1))];
+                var sprite = sprites[(int)(Mathf.Clamp01(maxValue) * (sprites.Length - 1))];
                 if (sprite)
                 {
                     var t = sprite.texture;
                     var rect = sprite.rect;
+                    if (t.width == t.height)
+                        material.SetTextureScale("_MainTex", new Vector2(0.25f, 0.25f));
+                    else
+                        material.SetTextureScale("_MainTex", new Vector2(0.25f, 0.5f));
                     material.SetTexture("_MainTex", t);
                     material.SetTextureOffset("_MainTex", new Vector2(rect.x / t.width, rect.y / t.height));
                 }
