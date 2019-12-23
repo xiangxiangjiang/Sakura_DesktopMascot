@@ -4,37 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [ExecuteInEditMode]
-public class FaceManager : MonoBehaviour
+public class FaceManager : Singleton<FaceManager>
 {
-    #region Singleton Pattern
-    static FaceManager _instance;
-    public static FaceManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = FindObjectOfType<FaceManager>();
-                var go = GameObject.Find("/__Face Manager");
-                if (go)
-                {
-                    _instance = go.GetComponent<FaceManager>();
-                    if (_instance == null)
-                        _instance = go.AddComponent<FaceManager>();
-                }
-                else
-                {
-                    _instance = (new GameObject("__Face Manager", typeof(FaceManager))).GetComponent<FaceManager>();
-                    _instance.hideFlags = HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor;
-                }
-            }
-            return _instance;
-        }
-    }
-    FaceManager() { }
-    void OnDestroy() { DestroyImmediate(gameObject); }
-    #endregion
-
     Dictionary<string, Face> _faceDic = new Dictionary<string, Face>();
 
     public void LateUpdate()

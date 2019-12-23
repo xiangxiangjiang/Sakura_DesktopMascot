@@ -7,6 +7,7 @@ public class FaceCtrl_Sakura : FaceCtrlBase
 {
     //---------- Data --------------
     public FaceData faceData;
+    public AudioSource audioSource;
 
     //---------- Material ----------
     public Material matEye_L;
@@ -14,6 +15,13 @@ public class FaceCtrl_Sakura : FaceCtrlBase
     public Material matMouth;
 
     //------- Controller --------
+    [Header("Auto Controller")]
+    public bool enableAutoBlink = true;
+    public float minInterval = 4, maxInterval = 8, duration = 0.5f;
+    public bool enableAutoMouth = true;
+    public float scale = 0.5f;
+    public int band = 8;
+
     [Header("Controller")]
     public bool enableCtrl = true;
     [Range(0.01f, 1)] public float mouthOpenCtrl;
@@ -91,6 +99,21 @@ public class FaceCtrl_Sakura : FaceCtrlBase
                     Switch(ref blinkSad2R_L, ref blinkSad2R, eyeCloseR, eyeLRCtrl + 0.5f);
                 }
             }
+        }
+        if (audioSource)
+        {
+            if (!audioSource.isPlaying && enableAutoBlink)
+            {
+                eyeCloseCtrl = Mathf.Clamp(AutoBlinkCtrl(minInterval, maxInterval, duration), 0.01f, 1);
+            }
+            else if (audioSource.isPlaying && enableAutoMouth)
+            {
+                mouthOpenCtrl = Mathf.Clamp(AutoMouthCtrl(audioSource, scale, band), 0.01f, 1);
+            }
+        }
+        else
+        {
+            Debug.LogError("Audio Source is Missing!");
         }
         SetValue();
     }

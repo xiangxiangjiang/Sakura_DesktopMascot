@@ -10,27 +10,12 @@ public enum TouchType
 }
 
 [RequireComponent(typeof(Animator))]
-public class SakuraCtrl : MonoBehaviour
+public class SakuraCtrl : Singleton<SakuraCtrl>
 {
     List<string> _aniHead, _aniNormal, _aniSpecial, _aniUndef;
     Dictionary<string, AudioClip> _audioClip = new Dictionary<string, AudioClip>();
     Animator _animator;
     AudioSource _audioPlayer;
-
-
-    static SakuraCtrl _instance;
-    public static SakuraCtrl Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = FindObjectOfType<SakuraCtrl>();
-            }
-            return _instance;
-        }
-    }
-    SakuraCtrl() { }
 
     void Start()
     {
@@ -57,9 +42,9 @@ public class SakuraCtrl : MonoBehaviour
 
     void Update()
     {
-        if ((Input.GetMouseButtonUp(0) /*|| RainityInput.GetMouseButtonUp(0)*/) &&
-        _animator.GetNextAnimatorClipInfo(0).Length == 0 &&
-        _animator.GetCurrentAnimatorStateInfo(0).IsName("Avatar_Yae_Sakura_Ani_StandBy"))
+        bool isIdle = _animator.GetNextAnimatorClipInfo(0).Length == 0 &&
+        _animator.GetCurrentAnimatorStateInfo(0).IsName("Avatar_Yae_Sakura_Ani_StandBy");
+        if ((Input.GetMouseButtonUp(0)) && isIdle)
         {
             RaycastHit hitInfo;
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo, 100f, LayerMask.GetMask("Gal")))
@@ -68,21 +53,12 @@ public class SakuraCtrl : MonoBehaviour
                 {
                     case "Gal_Normal":
                         Touch(TouchType.Normal);
-#if UNITY_EDITOR
-                        Debug.Log("普通触摸");
-#endif
                         break;
                     case "Gal_Head":
                         Touch(TouchType.Head);
-#if UNITY_EDITOR
-                        Debug.Log("摸头触摸");
-#endif
                         break;
                     case "Gal_Special":
                         Touch(TouchType.Special);
-#if UNITY_EDITOR
-                        Debug.Log("特殊触摸");
-#endif
                         break;
                 }
             }

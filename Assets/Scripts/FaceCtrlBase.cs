@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 
 public abstract class FaceCtrlBase : MonoBehaviour
@@ -8,6 +9,9 @@ public abstract class FaceCtrlBase : MonoBehaviour
     protected Dictionary<string, float> _valueEye_L = new Dictionary<string, float>();
     protected Dictionary<string, float> _valueEye_R = new Dictionary<string, float>();
     protected Dictionary<string, float> _valueMouth = new Dictionary<string, float>();
+    protected float _timer;
+    float _eyeAutoBlink = 0;
+    float[] _spectrumData = new float[128];
 
     protected abstract void Start();
     protected abstract void Update();
@@ -16,6 +20,49 @@ public abstract class FaceCtrlBase : MonoBehaviour
         Start();
     }
 
+    /// <summary>
+    /// 采样音频返回0-1的MouthOpen Value
+    /// </summary>
+    /// <param name="audioSource"></param>
+    /// <param name="scale">控制缩放</param>
+    /// <param name="band">采样范围</param>
+    /// <returns>MouthOpen Value</returns>
+    protected float AutoMouthCtrl(AudioSource audioSource, float scale, float band = 8)
+    {
+        if (audioSource == null || !audioSource.isPlaying)
+            return 0;
+        //获取音频数据，精度128
+        audioSource.GetSpectrumData(_spectrumData, 0, FFTWindow.BlackmanHarris);
+        float max = 0;
+        for (int i = 0; i < band; i++)
+        {
+            if (max < _spectrumData[i])
+            {
+                max = _spectrumData[i];
+            }
+        }
+        return max * scale;
+    }
+
+    /// <summary>
+    /// 自动眨眼
+    /// </summary>
+    /// <param name="minInterval">最小间隔</param>
+    /// <param name="maxInterval">最大间隔</param>
+    /// <param name="duration">眨眼过程时间</param>
+    /// <returns>Blink Value</returns>
+    protected float AutoBlinkCtrl(float minInterval, float maxInterval, float duration)
+    {
+        var r = Random.Range(minInterval, maxInterval);
+        if (Time.time - _timer > r)
+        {
+            _timer = Time.time;
+            DOTween.To(() => _eyeAutoBlink, v => _eyeAutoBlink = v, 1, duration * 0.5f).onComplete +=
+            () => DOTween.To(() => _eyeAutoBlink, v => _eyeAutoBlink = v, 0, duration * 0.5f);
+        }
+
+        return _eyeAutoBlink;
+    }
 
     /// <summary>
     /// 混合表情
