@@ -10,7 +10,7 @@ public abstract class FaceCtrlBase : MonoBehaviour
     protected Dictionary<string, float> _valueEye_R = new Dictionary<string, float>();
     protected Dictionary<string, float> _valueMouth = new Dictionary<string, float>();
     protected float _timer;
-    float _eyeAutoBlink = 0;
+    float _eyeAutoBlinkTimer = 0;
     float[] _spectrumData = new float[128];
 
     protected abstract void Start();
@@ -51,17 +51,16 @@ public abstract class FaceCtrlBase : MonoBehaviour
     /// <param name="maxInterval">最大间隔</param>
     /// <param name="duration">眨眼过程时间</param>
     /// <returns>Blink Value</returns>
-    protected float AutoBlinkCtrl(float minInterval, float maxInterval, float duration)
+    protected float AutoBlinkCtrl(float minInterval, float maxInterval, float duration, AnimationCurve blinkCurve)
     {
         var r = Random.Range(minInterval, maxInterval);
         if (Time.time - _timer > r)
         {
             _timer = Time.time;
-            DOTween.To(() => _eyeAutoBlink, v => _eyeAutoBlink = v, 1, duration * 0.5f).onComplete +=
-            () => DOTween.To(() => _eyeAutoBlink, v => _eyeAutoBlink = v, 0, duration * 0.5f);
+            DOTween.To(() => _eyeAutoBlinkTimer, v => _eyeAutoBlinkTimer = v, 1, duration).onComplete += () => _eyeAutoBlinkTimer = 0;
         }
 
-        return _eyeAutoBlink;
+        return blinkCurve.Evaluate(_eyeAutoBlinkTimer);
     }
 
     /// <summary>

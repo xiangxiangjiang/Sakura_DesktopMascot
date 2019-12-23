@@ -17,9 +17,10 @@ public class FaceCtrl_Sakura : FaceCtrlBase
     //------- Controller --------
     [Header("Auto Controller")]
     public bool enableAutoBlink = true;
+    public AnimationCurve blinkCurve;
     public float minInterval = 4, maxInterval = 8, duration = 0.5f;
     public bool enableAutoMouth = true;
-    public float scale = 0.5f;
+    public float scale = 10;
     public int band = 8;
 
     [Header("Controller")]
@@ -65,58 +66,66 @@ public class FaceCtrl_Sakura : FaceCtrlBase
         if (enableCtrl)
         {
             Init();
-            // mouth
-            Switch(ref mouthOpenLaugh2, ref mouthOpenLaugh1, ref mouthOpenNormal, ref mouthOpenSad1, ref mouthOpenSad2,
-             mouthOpenCtrl, mouthLaughSadCtrl * 0.5f + 0.5f);
-            // eye blink only
-            float eyeCloseL = Mathf.Clamp01(eyeCloseCtrl + eyeCloseCtrlL);
-            float eyeCloseR = Mathf.Clamp01(eyeCloseCtrl + eyeCloseCtrlR);
-            if (eyeLRCtrl == 0)
+            // 自动表情
+            if (audioSource)
             {
-                Switch(ref blinkLaughL, ref blinkNormalL, ref blinkSad1L, ref blinkSad2L, eyeCloseL, eyeLaughSadCtrl + 0.25f);
-                Switch(ref blinkLaughR, ref blinkNormalR, ref blinkSad1R, ref blinkSad2R, eyeCloseR, eyeLaughSadCtrl + 0.25f);
-            }
-            else if (eyeCloseCtrl + eyeCloseCtrlL + eyeCloseCtrlR == 0.01f)// LR only
-            {
-                Switch(ref L2R_NormalL, ref L2R_Sad1L, ref L2R_Sad2L, eyeLRCtrl + 0.5f, Mathf.Abs(eyeLaughSadCtrl) * 1.3f);
-                Switch(ref L2R_NormalR, ref L2R_Sad1R, ref L2R_Sad2R, eyeLRCtrl + 0.5f, Mathf.Abs(eyeLaughSadCtrl) * 1.3f);
+                if (!audioSource.isPlaying && enableAutoBlink)
+                {
+                    eyeCloseCtrl = Mathf.Clamp(AutoBlinkCtrl(minInterval, maxInterval, duration, blinkCurve), 0.01f, 1);
+                }
+                else if (audioSource.isPlaying && enableAutoMouth)
+                {
+                    mouthOpenCtrl = Mathf.Clamp(AutoMouthCtrl(audioSource, scale, band), 0.01f, 1);
+                }
             }
             else
             {
-                if (eyeLaughSadCtrl < 0.25f) // Normal
-                {
-                    Switch(ref blinkNormalL_L, ref blinkNormalL, ref blinkNormalL_R, eyeCloseL, eyeLRCtrl + 0.5f);
-                    Switch(ref blinkNormalR_L, ref blinkNormalR, ref blinkNormalR_R, eyeCloseR, eyeLRCtrl + 0.5f);
-                }
-                else if (eyeLaughSadCtrl < 0.5f) // Sad1
-                {
-                    Switch(ref blinkSad1L_L, ref blinkSad1L, eyeCloseL, eyeLRCtrl + 0.5f);
-                    Switch(ref blinkSad1R_L, ref blinkSad1R, eyeCloseR, eyeLRCtrl + 0.5f);
-                }
-                else // Sad2
-                {
-                    Switch(ref blinkSad2L_L, ref blinkSad2L, eyeCloseL, eyeLRCtrl + 0.5f);
-                    Switch(ref blinkSad2R_L, ref blinkSad2R, eyeCloseR, eyeLRCtrl + 0.5f);
-                }
+                Debug.LogError("Audio Source is Missing!");
             }
-        }
-        if (audioSource)
-        {
-            if (!audioSource.isPlaying && enableAutoBlink)
-            {
-                eyeCloseCtrl = Mathf.Clamp(AutoBlinkCtrl(minInterval, maxInterval, duration), 0.01f, 1);
-            }
-            else if (audioSource.isPlaying && enableAutoMouth)
-            {
-                mouthOpenCtrl = Mathf.Clamp(AutoMouthCtrl(audioSource, scale, band), 0.01f, 1);
-            }
-        }
-        else
-        {
-            Debug.LogError("Audio Source is Missing!");
+
+            StateMachine();
         }
         SetValue();
     }
+
+    private void StateMachine()
+    {
+        // mouth
+        Switch(ref mouthOpenLaugh2, ref mouthOpenLaugh1, ref mouthOpenNormal, ref mouthOpenSad1, ref mouthOpenSad2,
+         mouthOpenCtrl, mouthLaughSadCtrl * 0.5f + 0.5f);
+        // eye blink only
+        float eyeCloseL = Mathf.Clamp01(eyeCloseCtrl + eyeCloseCtrlL);
+        float eyeCloseR = Mathf.Clamp01(eyeCloseCtrl + eyeCloseCtrlR);
+        if (eyeLRCtrl == 0)
+        {
+            Switch(ref blinkLaughL, ref blinkNormalL, ref blinkSad1L, ref blinkSad2L, eyeCloseL, eyeLaughSadCtrl + 0.25f);
+            Switch(ref blinkLaughR, ref blinkNormalR, ref blinkSad1R, ref blinkSad2R, eyeCloseR, eyeLaughSadCtrl + 0.25f);
+        }
+        else if (eyeCloseCtrl + eyeCloseCtrlL + eyeCloseCtrlR == 0.01f)// LR only
+        {
+            Switch(ref L2R_NormalL, ref L2R_Sad1L, ref L2R_Sad2L, eyeLRCtrl + 0.5f, Mathf.Abs(eyeLaughSadCtrl) * 1.3f);
+            Switch(ref L2R_NormalR, ref L2R_Sad1R, ref L2R_Sad2R, eyeLRCtrl + 0.5f, Mathf.Abs(eyeLaughSadCtrl) * 1.3f);
+        }
+        else
+        {
+            if (eyeLaughSadCtrl < 0.25f) // Normal
+            {
+                Switch(ref blinkNormalL_L, ref blinkNormalL, ref blinkNormalL_R, eyeCloseL, eyeLRCtrl + 0.5f);
+                Switch(ref blinkNormalR_L, ref blinkNormalR, ref blinkNormalR_R, eyeCloseR, eyeLRCtrl + 0.5f);
+            }
+            else if (eyeLaughSadCtrl < 0.5f) // Sad1
+            {
+                Switch(ref blinkSad1L_L, ref blinkSad1L, eyeCloseL, eyeLRCtrl + 0.5f);
+                Switch(ref blinkSad1R_L, ref blinkSad1R, eyeCloseR, eyeLRCtrl + 0.5f);
+            }
+            else // Sad2
+            {
+                Switch(ref blinkSad2L_L, ref blinkSad2L, eyeCloseL, eyeLRCtrl + 0.5f);
+                Switch(ref blinkSad2R_L, ref blinkSad2R, eyeCloseR, eyeLRCtrl + 0.5f);
+            }
+        }
+    }
+
     void SetValue()
     {
         _valueEye_L["眨眼-哭2"] = blinkSad2L;
