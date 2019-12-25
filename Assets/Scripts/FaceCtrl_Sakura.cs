@@ -82,7 +82,6 @@ public class FaceCtrl_Sakura : FaceCtrlBase
             {
                 Debug.LogError("Audio Source is Missing!");
             }
-
             StateMachine();
         }
         SetValue();
